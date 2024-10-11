@@ -4,27 +4,27 @@ function organizeGifts(gifts) {
     let [numberPallets, numberBox, looseGift] = [0, 0, 0]
     let result = []
     for (let i = 0; i < gifts.length; i++) {
-        if (!isNaN(Number(gifts[i]))) //Verificando que sea un numero
+        if (!isNaN(Number(gifts[i]))) 
         {
-            number += gifts[i].toString()  // 32
+            number += gifts[i].toString()  
         }
         else {
-            number = Number(number) // 32
-            numberPallets = Math.floor(number / 50) // 0
-            number = number - (50 * numberPallets)  // number --> 32
-            numberBox = Math.floor((number / 10))  // 3
-            looseGift = number - (10 * numberBox) // 2
+            number = Number(number) 
+            numberPallets = Math.floor(number / 50) 
+            number = number - (50 * numberPallets)  
+            numberBox = Math.floor((number / 10))  
+            looseGift = number - (10 * numberBox) 
 
             let numberFor = numberPallets + numberBox + looseGift
 
             let bol = false
-            for (let j = 0; j < numberFor; j++) { // 3   // box 0
+            for (let j = 0; j < numberFor; j++) { 
                 if (numberPallets !== 0) {
                     auxiliar += `[${gifts[i]}]`
                     numberPallets -= 1
                 }
                 else if (numberBox !== 0) {
-                    auxiliar += `{${gifts[i]}}`  // {a}{a}{a}
+                    auxiliar += `{${gifts[i]}}`  
                     numberBox -= 1
                 }
                 else {
@@ -54,5 +54,4 @@ function organizeGifts(gifts) {
     return result.join('')
 }
 
-organizeGifts('76a11b')
 
