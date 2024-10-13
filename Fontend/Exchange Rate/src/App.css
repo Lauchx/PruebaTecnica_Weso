@@ -1,24 +1,8 @@
  .aside-app {
-   margin: 20px;
+   float: left;
    justify-content: center;
    align-items: center;
    align-content: center;
- }
-
- .article-app {
-   margin: 20px;
-
- }
-
- .articule-div-historical2 {
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   height: 100px;
-   background-color: #333;
- }
-
- .aside-app {
    padding: 20px;
    border: 1px solid #444;
    background: #333;
@@ -26,8 +10,32 @@
    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
  }
 
+ .article-app {
+   margin: 20px;
+   float: left;
+   justify-content: center;
+   align-items: center;
+   align-content: center;
+
+ }
+
+ .articule-div-historical2 {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   border: 1px solid #444;
+   background: #333;
+   border-radius: 8px;
+   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+ }
+
+
+
  .form-currency {
-   margin-bottom: 20px;
+   border: 1px solid #444;
+   background: #333;
+   border-radius: 8px;
+   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
  }
 
  .form-currency-fs {
@@ -35,20 +43,15 @@
  }
 
  label {
-   display: block;
    margin-bottom: 10px;
  }
 
  select {
    width: 100%;
    padding: 10px;
-
    border: 1px solid #555;
-
    border-radius: 4px;
-
    background-color: #444;
-
    color: #fff;
 
  }
@@ -56,21 +59,23 @@
  .div-currency {
    margin: 10px 0;
    padding: 10px;
-   background-color: #444;
-   border-radius: 4px;
+   border-radius: 5px;
    display: flex;
-  justify-content: space-between; /* Alinea el contenido a los extremos */
-  align-items: center;
+   justify-content: space-between;
+   align-items: center;
+   border: 1px solid #444;
+   background: #333;
+   border-radius: 8px;
+   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
  }
 
  input[type="date"] {
-   width: 80%;
+   width: 70%;
    padding: 10px;
    border: 1px solid #555;
    border-radius: 5px;
    background-color: #444;
    color: #fff;
-   margin: 30px;
    display: flex;
    align-items: center;
    justify-content: center;
@@ -79,10 +84,7 @@
  .p-currency-historical {
    justify-content: center;
    margin: 10px;
-   /* Espaciado superior entre el h3 y los párrafos */
    color: #fff;
-   /* Color del texto para el párrafo */
-
  }
 
  ul {
@@ -96,7 +98,9 @@
 
  h3 {
    color: #ffcc00;
-   margin: 10px;
+   margin-top: 10px;
+   margin-left: 10px;
+   margin-right: 10px;
  }
 
  .error {
@@ -104,5 +108,6 @@
  }
 
  li {
+   list-style: none;
    padding: 0;
  }
