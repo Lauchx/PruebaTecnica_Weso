@@ -1,15 +1,16 @@
 const express = require('express');
 const cors = require('cors');
-const crypto = require('node:crypto')
-
+const mysql = require('mysql2/promise')
 const app = express();
-app.disable('X-Powered-By')
+const cron = require('node-cron');
+
+app.disable('x-powered-by')
 const PORT = process.env.PORT ?? 3000;
 
 //Usando solo origenes que vos quieras que tengan  acceso a tu API
 app.use(cors({
     origin: (origin, callback) => {
-        const allowedOrigins = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001', 'http://localhost:4200'];
+        const allowedOrigins = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:4200'];
         if (allowedOrigins.includes(origin) || !origin) {
             return callback(null, true)
         }
@@ -19,32 +20,23 @@ app.use(cors({
 app.use(express.json())
 const apiKey = 'd355bd35ee32483fba09a438677c6daf'
 
-app.get('/latest', (req, res) => {
-    const url = `https://openexchangerates.org/api/latest.json?app_id=${apiKey}`
-    getFetch(url).then(ExchangeJson => {
-        res.status(200).json(ExchangeJson.rates)
-    }).catch(error => {
-        res.status(500).json({ error: error.message });
-    })
-})
+async function createConnection() {
+    try {
+        const connection = await mysql.createConnection({
+            host: 'localhost',
+            user: 'root',
+            port: 3306,
+            password: 'root',
+            database: 'exchange'
+        });
+        console.log('Conexión a la base de datos establecida.')
+        return connection;
+    } catch (error) {
+        console.error('Error al conectarse a la base de datos:', error);
+        throw error; // Lanza el error para que se pueda manejar más tarde
+    }
+}
 
-app.get('/currencies', (req, res) => {
-    const url = `https://openexchangerates.org/api/currencies.json?app_id=${apiKey}`
-    getFetch(url).then(currenciesJson => {
-        res.status(200).json(currenciesJson)
-    }).catch(error => {
-        res.status(500).json({ error: error.message });
-    })
-})
-app.get('/historical/:year-:month-:day', (req, res) => {
-    const { year, month, day } = req.params
-    const url = `https://openexchangerates.org/api/historical/${year}-${month}-${day}.json?app_id=${apiKey}`
-    getFetch(url).then(apiHistorical => {
-        res.status(200).json(apiHistorical.rates)
-    }).catch(error => {
-        res.status(500).json({ error: error.message });
-    })
-})
 
 
 function getFetch(url) {
@@ -55,72 +47,77 @@ function getFetch(url) {
         return api.json()
     })
 }
-//-----------------------------------------------------------------------------------------------------------//
-// Endpoint para agregar un nuevo dato
-// app.post('/products', (req, res) => {
-//     const result = validateProduct(req.body)
+cron.schedule('0 0 * * *', async () => {
+    console.log('entro')
+    const connection = await createConnection()
+    let url = `https://openexchangerates.org/api/latest.json?app_id=${apiKey}`
+    try {
+        let latestJson = await getFetch(url);
+        let latest = latestJson.rates;
 
-//     if (!result.success) {
-//         return res.status(422).json({ error: result.error.issues })
-//     }
-//     const newProduct = {
-//         id: crypto.randomUUID(),
-//         ...result.data,
-//     }
+        for (const key in latest) { //  recorre el objeto
+            const value = latest[key]; // rescatando el valor dentro de los atributos
+            await connection.query("INSERT INTO latest(id, value) VALUES(?, ?) ON DUPLICATE KEY UPDATE value = ?", [key, value, value]) // inserta o actualiza el valor, en la base de datos 
+        }
+        console.log('actualizado')
+    } catch (error) {
+        console.log('error' + error)
+        throw new Error('Error:' + error)
+    }
+    /////------Save currencies data--------//////
+    url = `https://openexchangerates.org/api/currencies.json?app_id=${apiKey}`
+    try {
+        let currenciesJson = await getFetch(url);
+        for (const key in currenciesJson) {
+            const value = currenciesJson[key];
+            await connection.query("INSERT INTO currencies(id, name) VALUES(?, ?) ON DUPLICATE KEY UPDATE name = ?", [key, value, value])
+        }
+        console.log('actualizado')
+    } catch (error) {
+        console.log('error' + error)
+        throw new Error('Error:' + error)
+    }
 
-//     dataProducts.push(newProduct);
-//     res.status(201).json(newProduct);
-// })
+
+})
 
 
-// app.put('/products/:id', (req, res) => {
-//     const { id } = req.params;
-//     const result = validateProduct(req.body)
+app.get('/latest', async (req, res) => {
+    try {
+        const connection = await createConnection()
+        const [rows] = await connection.query('SELECT id, value FROM latest')
+        res.json(rows)
+    } catch (error) {
+        console.error('Error al obtener datos:', error);
+        const stauts = error.stats || 500 
+        res.status(stauts).json({ error: 'Error al obtener datos' }); 
+    }
+})
 
-//     if (!result.success) {
-//         return res.status(422).json({ error: result.error.issues })
-//     }
-//     const productIndex = dataProducts.findIndex(p => p.id === id)
+app.get('/currencies', async (req, res) => {
+    try {
+        const connection = await createConnection()
+        const [rows] = await connection.query('SELECT id, name FROM currencies')
+        res.json(rows)
+    } catch (error) {
+        console.error('Error al obtener datos:', error);
+        const stauts = error.stats || 500 
+        res.status(stauts).json({ error: 'Error al obtener datos' }); 
+    }
+})
+app.get('/historical/:year-:month-:day', (req, res) => {
+    // Pedido de datos a la api
+    const { year, month, day } = req.params
+    const url = `https://openexchangerates.org/api/historical/${year}-${month}-${day}.json?app_id=${apiKey}`
+    getFetch(url).then(apiHistorical => {
+        res.status(200).json(apiHistorical.rates)
+    }).catch(error => {
+        const statusCode = error.status || 500;
+        res.status(statusCode).json({ error: error.message });
+    })
+})
 
-//     if (productIndex === -1) {
-//         return res.status(404).send('Item not found');
-//     }
-//     const updatedProduct = {
-//         ...dataProducts[productIndex],
-//         ...result.data,
-//     }
-//     dataProducts[productIndex] = updatedProduct;
 
-//     res.status(200).json(updatedProduct);
-// })
-
-// // Endpoint para eliminar un dato
-// app.delete('/products/:id', (req, res) => {
-//     //const id = parseInt(req.params.id);
-//     const id = req.params.id;
-//     console.log(id + "ID")
-
-//     const productIndex = dataProducts.findIndex(p => p.id === id)
-
-//     if (productIndex === -1) {
-//         return res.status(404).send('Item not found');
-//     }
-//     dataProducts.splice(productIndex, 1)
-//     return res.json({ message: "Product deleted" })
-
-// })
-
-// //seleccionar por id
-// app.get('/products/:id', (req, res) => {
-//     const { id } = req.params;
-//     const product = dataProducts.find(product => product.id === id);
-
-//     if (product) {
-//         return res.json(product);
-//     }
-//     return res.status(404).json({ error: 'Item not found' });
-
-// })
 
 // Iniciamos el servidor
 app.listen(PORT, () => {
