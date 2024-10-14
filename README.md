@@ -107,7 +107,4 @@ Este proyecto utiliza los siguientes endpoints para la comunicación con el back
   Este endpoint devuelve las tasas de cambio más recientes.
 
 
-## Licencia
-
-Este proyecto está licenciado bajo la [Licencia MIT](LICENSE).
 
