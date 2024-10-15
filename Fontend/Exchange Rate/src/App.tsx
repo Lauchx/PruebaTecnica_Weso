@@ -83,7 +83,7 @@ function App() {
 
         <div className='div-currency'>
 
-          <h3>Historical data of the selected currency </h3>
+          <h3>Data of the selected currency </h3>
           {latest == null ? (
             <p className='error'>The selected currency was not found.</p>
           ) : (
